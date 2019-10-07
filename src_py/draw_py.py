@@ -24,6 +24,8 @@ else:
 
 # fractional part of x
 
+EMPTY_RGBA = (0, 0, 0, 0)
+
 def frac(x):
     '''return fractional part of x'''
     return x - floor(x)
@@ -31,6 +33,14 @@ def frac(x):
 def inv_frac(x):
     '''return inverse fractional part of x'''
     return 1 - (x - floor(x)) # eg, 1 - frac(x)
+
+def get_surface_color(surf, position, blend=True):
+    if blend:
+        try:
+            return surf.get_at(position)
+        except:
+            return None
+    reurn EMPTY_RGBA
 
 
 #   L O W   L E V E L   D R A W   F U N C T I O N S   #
@@ -42,10 +52,10 @@ def set_at(surf, x, y, color):
 
 def draw_pixel(surf, x, y, color, bright, blend=True):
     '''draw one blended pixel with given brightness.'''
-    try:
-        other_col = surf.get_at((x, y)) if blend else (0, 0, 0, 0)
-    except IndexError:  # pixel outside the surface
+    other_col = get_surface_color(surf, (x, y), blend)
+    if other_col == None:
         return
+    
     new_color = tuple((bright * col + (1 - bright) * pix)
                       for col, pix in zip(color, other_col))
     # FIXME what should happen if only one, color or surf_col, has alpha?

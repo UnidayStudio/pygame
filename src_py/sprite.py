@@ -342,7 +342,17 @@ class AbstractGroup(object):
 
     def __contains__(self, sprite):
         return self.has(sprite)
-
+    
+    def __remove_internal_sprites(self, sprite):
+        if hasattr(sprite, '_spritegroup'):
+            for spr in sprite.sprites():
+                if self.has_internal(spr):
+                    self.remove_internal(spr)
+                    spr.remove_internal(self)
+        elif self.has_internal(sprite):
+            self.remove_internal(sprite)
+            sprite.remove_internal(self)
+    
     def add(self, *sprites):
         """add sprite(s) to group
 
@@ -369,14 +379,7 @@ class AbstractGroup(object):
                     # instance of the Sprite class or is not an instance of a
                     # subclass of the Sprite class. Alternately, it could be an
                     # old-style sprite group.
-                    if hasattr(sprite, '_spritegroup'):
-                        for spr in sprite.sprites():
-                            if not self.has_internal(spr):
-                                self.add_internal(spr)
-                                spr.add_internal(self)
-                    elif not self.has_internal(sprite):
-                        self.add_internal(sprite)
-                        sprite.add_internal(self)
+                    self.__remove_internal_sprites(sprite)
 
     def remove(self, *sprites):
         """remove sprite(s) from group
@@ -401,14 +404,7 @@ class AbstractGroup(object):
                 try:
                     self.remove(*sprite)
                 except (TypeError, AttributeError):
-                    if hasattr(sprite, '_spritegroup'):
-                        for spr in sprite.sprites():
-                            if self.has_internal(spr):
-                                self.remove_internal(spr)
-                                spr.remove_internal(self)
-                    elif self.has_internal(sprite):
-                        self.remove_internal(sprite)
-                        sprite.remove_internal(self)
+                    self.__remove_internal_sprites(sprite)
 
     def has(self, *sprites):
         """ask if group has a sprite or sprites
